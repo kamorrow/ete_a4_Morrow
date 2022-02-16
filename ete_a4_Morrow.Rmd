@@ -1,0 +1,279 @@
+---
+title: "Fossil Fuels, Biofuels, Clean Energy Revolution"
+subtitle: "Energy, Technology, & the Environment: Assignment 4"
+author: "Keene Morrow"
+date: "12/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+```
+
+### Exercise 1: Carbon Dioxide from Fossil Fuels 
+
+Calculate the atmospheric carbon dioxide concentration (in ppmvolume) that would be reached if all  fossil fuel reserves proved in 2019 would be combusted. Use the following data and assumptions:
+
+ - In 2019 the global atmospheric carbon concentration was 410 ppmvolume.
+ - Proved reserves and carbon content of fossil fuels can be found on the lecture slides.
+ - Assume the following densities: Crude oil 0.84 kg/liter, natural gas 0.82 kg/cubic meter.
+ - Assume complete combustion of all fossil fuels. 
+ - Conversion of atmospheric CO2 concentrations into total masses of atmospheric CO2 and  vice versa can be found on the lecture slides. 
+ - Assume that all uptake of fossil CO2 in the environment would follow the current pattern.
+
+```{r}
+# oil
+res_oil <- 1734 * 10^9 # barrels
+res_oil <- res_oil * 159 # litres (159 L/bbl)
+res_oil <- res_oil * 0.84 # kg (0.84 kg/L)
+```
+#### Proved Reserves:
+
+##### Oil:
+
+$1734 \cdot 10^{9} \ barrels\times 159 \frac{L}{barrel} \times 0.84 \frac{kg}{L} = `r res_oil` \ kg$
+
+```{r}
+# Gas
+res_gas <- 199 * 10*12 # m^3
+res_gas <- res_gas * 0.82 # kg (0.82 kg/m^3)
+```
+
+##### Natural Gas:
+
+$199 \cdot 10^{12} \ m^3 \times 0.82 \frac{kg}{m^3} = `r res_gas` \ kg$
+
+```{r}
+# Coal
+res_coal <- 1069 * 10^9 #tonnes
+res_coal <- res_coal * 1000 # kg
+```
+
+##### Coal:
+
+$1069 \cdot 10^{9} \ tonnes \times 1000 \frac{kg}{ton} = `r res_coal` \ kg$
+
+```{r}
+# Emissions
+ng_em <- 2.75 # kg CO2 / kg
+oil_em <- 3.09 # kg CO2 / kg
+coal_em <- 3.06 # kg CO2 / kg
+
+ng_em_tot <- ng_em * res_gas # kg CO2
+oil_em_tot <- oil_em * res_oil # kg CO2
+coal_em_tot <- coal_em * res_coal # kg CO2
+
+em_tot <- ng_em_tot + oil_em_tot + coal_em_tot
+```
+#### Emissions:
+
+##### Oil:
+
+$`r res_oil` \ kg \ oil \times `r oil_em` \frac{kg \ CO_2}{kg \ oil} = `r oil_em_tot` kg \ CO_2$
+
+##### Natural Gas:
+
+$`r res_gas` \ kg \ NG \times `r ng_em` \frac{kg \ CO_2}{kg \ NG} = `r ng_em_tot` kg \ CO_2$
+
+##### Coal:
+
+$`r res_coal` \ kg \ coal \times `r coal_em` \frac{kg \ CO_2}{kg \ coal} = `r coal_em_tot` kg \ CO_2$
+
+##### Total:
+
+$`r oil_em_tot` kg \ CO_2 + `r ng_em_tot` kg \ CO_2 + `r coal_em_tot` kg \ CO_2 = `r em_tot` kg \ CO_2$
+
+```{r}
+# Atmosphere
+
+atm_co2_start <- 410 # ppm, 2019
+atm_m <- (101 * 10^3) * (5.1 * 10*14) * (1/9.8) # mass of atmosphere in kg
+# Slides say 5.25 * 10*18 kg
+
+atm_co2_m <- atm_co2_start *  (44/28.97) * (5.25*10^18) # kg Co2
+
+
+ppm <- 8000000000000 # kg CO2 -> 8 billion tonnes Co2 per 1 ppm
+# 50% of emissions absorbed by oceans, rest added to atmosphere
+
+em_ppm <- em_tot / ppm
+
+em_ppm_atm <- em_ppm / 2
+
+```
+
+#### Atmosphere:
+
+$410 \ ppm \ CO_2 \ in \ 2019$
+
+$1 ppm \approx 8 \cdot10^9 kg \ CO_2$
+
+~50% of emissions are absorbed by the oceans.  The remainder is released into the atmosphere.
+
+##### Addition to Atmosphere:
+
+$`r em_tot` kg \ CO_2 \div 2 \div 8 \cdot10^9 = `r round(em_ppm_atm,2)` ppm \ CO_2 \ increase$
+
+##### Final Atmospheric Concentration of Carbon Dioxide:
+
+$410 \ ppm \ CO_2 \ in \ 2019 + `r round(em_ppm_atm,2)` ppm \ CO_2 = `r 410 + round(em_ppm_atm,2)` ppm \ CO_2$
+
+
+### Exercise 2: Ethanol from Corn 
+
+a) Calculate the ratio of energy output over total energy input for a liter of ethanol from corn  based on the following data: 
+
+ - Average agricultural production of corn is 7.85 tonnes per hectare (per year).
+ - Total energy input into corn production is 22.1 GJ per hectare. 
+ - Ethanol production at distillery yields 380 liters per tonne of corn.
+ - Energy requirements of the distillery are 13.7 GJ per 1000 liters of ethanol.
+ - Total energy requirements of transportation are 0.63 GJ per 1000 liters of ethanol.
+ - Gross calorific content of ethanol is 30 MJ per kg. 
+ - Density of ethanol is 789 kg per cubic meter.
+
+```{r}
+# Agriculture
+corn_prod <- 7.85 # tonnes corn per hectare
+Ein_corn <- 22.1 # GJ / hectare
+# Ein_corn <- Ein_corn * 1000 # MJ / hectare
+
+# Distillery
+dist_prod <- 380 # L / tonne corn
+Ein_dist <- 13.7 # GJ / 1000 L ethanol
+
+
+# Transportation
+trans_req <- 0.63 # GJ / 1000 L ethanol
+
+# Energy Content
+GCV_eth <- 30 # MJ / kg ethanol
+dens_eth <- 789 # kg / m^3
+# 1 m^3 = 1000 L
+dens_eth <- dens_eth * 1000 # kg / L
+E_eth <- dens_eth * GCV_eth # MJ / L
+
+# Output
+
+eth_prod <- corn_prod * dist_prod # L per hectare corn
+prod_eth <- 1/eth_prod # ha per L ethanol
+
+output <- eth_prod * E_eth # MJ per hectare corn
+output <- output / 1000 # GJ per ha corn
+output <- output * (prod_eth * 1000)
+
+
+# Input
+ag_input <- Ein_corn * eth_prod # GJ / L
+ag_input <- ag_input * 1000  # GJ / 1000 L ethanol
+
+input <- ag_input + Ein_dist + trans_req
+
+# Ratio
+ratio <- output / input
+```
+#### Input:
+
+##### Agriculture:
+
+$22.1 \frac{GJ}{ha \ corn} \cdot 7.85 \frac{tonnes \ corn}{ha} \cdot 380\frac{L}{tonne \ corn} \cdot 1000 = `r ag_input` \frac{GJ}{1000 L}$
+
+##### Total:
+
+$`r ag_input` \frac{GJ}{1000 L} + `r Ein_dist` \frac{GJ}{1000 L} + `r trans_req` \frac{GJ}{1000 L} = `r input`\frac{GJ}{1000 L}$
+
+#### Output:
+
+   $7.85 \frac{tonnes \ corn}{ha} \cdot 380 \frac{L}{tonne \ corn} = 2980 \frac{L}{ha}$
+
+   $30 \frac{MJ}{kg} \cdot 789 \frac{kg}{1000L} 0.001 \frac{MJ}{GJ} = 23.67 \frac{GJ}{1000 L}$
+
+#### Ratio:
+
+   $\frac{Output}{Input} = \frac{`r output`}{`r input`} = `r ratio`$
+
+
+b) How do total CO2 emissions from ethanol production and combustion compare to CO2  emissions from gasoline production and combustion. Use the following additional information: 
+
+ - CO2 emissions from agricultural corn production are 1237 kg per hectare.
+ - CO2 emissions from transportation are 262 kg per hectare. 
+ - CO2 emissions from ethanol distillation are 2721 kg per hectare. 
+ - CO2 emissions from gasoline production and combustion are 2.82 kg per liter.
+ - Gross calorific content of gasoline is 48 MJ per kg. 
+ - Density of gasoline is 730 kg per cubic meter.
+
+```{r}
+# Ethanol
+eth_em <- 1237 + 262 + 2721 # kg CO2 / ha corn production
+
+MJ_ha <- eth_prod * output / 1000000 # MJ per ha
+
+ha_MJ <- 1/eth_prod # ha per MJ
+
+em_eth <- eth_em * ha_MJ # kg CO2 / MJ
+
+
+# Gasoline
+GCV_gas <- 48 # MJ / kg
+dens_gas <- 730 # kg /m^3 aka kg / 1000 L
+
+dens_gas <-  dens_gas / 1000 # kg gas / L
+E_gas <- dens_gas * GCV_gas # MJ / L
+
+
+prod_comb_gas <- 2.82 # kg Co2 / L 
+
+em_gas <- prod_comb_gas / E_gas # MJ / L
+```
+
+
+##### Gasoline:
+
+$48 \frac{MJ}{kg} \cdot 730 \frac{kg}{m^3} = 35040 \frac{MJ}{m^3} = 35040 \frac{MJ}{1000 L} = 35.040 \frac{MJ}{L}$
+
+$35.040 \frac{MJ}{L} \div 2.82 \frac{kg \ CO_2}{L} = `r 35.040/2.82` \frac{MJ}{kg \ CO_2}$
+
+##### Ethanol:
+
+Per lecture materials, ethanol use was assumed to have a net zero emission of carbon dioxide equivalent.
+
+$1237 \frac{kg \ CO_2}{ha} + 262 \frac{kg \ CO_2}{ha} + 2721 \frac{kg \ CO_2}{ha} = `r eth_em` \frac{kg \ CO_2}{ha}$
+
+$( `r eth_prod` \frac{L}{ha} * `r output/1000` \frac{MJ}{L}) \div `r eth_em` \frac{kg \ CO_2}{ha}  = `r 1/em_eth` \frac{MJ}{kg \ CO_2}$
+
+The energy output of gasoline per kilogram of carbon dioxide emissions is much higher than that of ethanol.
+ 
+c) Do some literature and internet research on CO2 emissions from indirect land use change  (iLUC) due to directing corn from food and feed to ethanol. What are values for iLUC GHG emissions (in gCO2eq/MJ fuel energy) found in literature and other sources?
+
+
+Plevin et al. "estimated that the bounding range for emissions from indirect land-use change (ILUC) from US corn ethanol expansion was 10 to 340 $\frac{g \ CO_2}{MJ}$." in *Greenhouse Gas Emissions from Biofuels’ Indirect Land Use Change Are Uncertain but May Be Much Greater than Previously Estimated*, Environmental Science & Technology 2010 44 (21), 8015-8021, DOI: 10.1021/es101946t.
+
+
+### Exercise 3: A Clean Energy Revolution 
+
+Please write up your vision of a clean energy revolution in the United States. Envision a future in  which the environmental impacts from energy production and use in the U.S. are dramatically lower  than they are today. Make your vision compelling by discussing the technological, operational, and  sociological feasibility of your ideas and proposals. You can talk about economic feasibility as well  if you want, but it is not required. Maximum word count is 1,000.
+
+***
+
+   Energy production and use in the United States imposes massive environmental impacts with the likely greatest perpetrator being fossil fuel combustion.  Achieving an energy future with minimal environmental impacts hinges on phasing out fossil fuels and increasing investment in other technologies, both for generation and use.  Without providing enough generation to support the ever-increasing demand for energy, there cannot be a full shift to low-impact energy.
+
+   Fossil fuel use must be phased out completely due to their massive contribution to greenhouse gas emissions and resulting driving of climate change. The major barriers to displacing fossil fuels are their ability to provide consistent baseload generation for the grid; their low cost and prevalence; and their specialized use in certain industries, such as steel production.  While the loss of baseload generation can be accounted for elsewhere and technology is being developed for use in industry, the cheap ubiquity of fossil fuels must be overcome in order to allow for other technologies to take their place.  In short, this will require a reallocation of government subsidies for fossil fuels to renewable energy technologies, concentrated private and public investment, and particular attention paid to training to support the workforce requirements of a new energy landscape and social support to ensure that no one reliant on the fossil fuel industry is left behind by a shift to renewable technology.
+	
+   Nuclear power does not represent a viable alternative to replace the baseload generation lost from the phase out of fossil fuels.  While the actual impacts of electricity generation using nuclear technology are quite low, the inputs and outputs of the technology do have an extensive environmental and humanitarian impact.  On the input side, uranium mining leaves landscapes devastated and exposes local communities to radiation, resulting in major health impacts.  After fuel rods are depleted, they remain radioactive for millennia and thus pose a threat to human life. The question of how they can be safely stored until they are safe has not yet be solved even as depleted material piles up.
+	
+   Similarly, hydropower provides low-emission electricity generation in most scenarios, but has a massive impact on the landscape and the processes associated with it as well as humanitarian effects on those displaced by reservoirs.  The environmental impact of existing hydropower installations is low compared to fossil fuels and the technology itself offers consistent generation to support baseload demand.  While hydropower would ideally be phased out to reduce the overall environmental impact of energy production, such actions are not as critical in the short term as ending the use of fossil fuels.
+	
+   Biofuels are inefficient and provide little benefit.  As such they will not be discussed here.
+	
+   The key to an energy transition is to ensure that energy demand is being met.  This will require investment in renewable technology research and in the implementation of existing technologies, with a plan for expansion increasing efficiency to meet the ever-growing demand for energy.  The greatest shortcoming of current renewable technologies such as wind and solar is that they are not “always on” in the way that fossil fuel generation, nuclear power, or even hydropower can be.  This leaves a potential shortfall in energy supply relative to demand, especially during peak use hours after the sun has gone down.  The key to address this shortfall is the implementation  of storage technology, particularly batteries.  Batteries suffer from being less efficient that the simple combustion of fossil fuels, certain technologies posing fire risk, and from the sourcing and reclamation of the materials that go into them.  While it is necessary to use the technology available now to displace fossil fuel use, it is also necessary to continue research on battery technology and reclamation opportunities to address these issues.
+	
+   While a combination of wind and solar generation with storage technology provides significantly lessened environmental impacts than fossil fuel use, they are not free of them.  The technology still requires mineral extraction and space to operate in addition to potential impacts from operation, including on wildlife.  While climate change poses such an outsize threat to the environment and humanity that swift, decisive action needed to address the greatest driver of that, efforts to reduce impacts cannot stop there.  Even with massive changes to energy production, it is likely that there will be no future with zero environmental impact due to energy demand.
+
+***
+*Have another one.*
+
+![](solar_cat.png)
+
+Creator: Belinda Abernethy 
+Copyright: leehowell2014
